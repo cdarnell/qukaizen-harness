@@ -1,0 +1,7 @@
+{
+  "resident": "qwen3-9b-instruct",
+  "resident_min_params_b": 8,
+  "resident_max_params_b": 14,
+  "streamable": ["gpt-oss-120b"],
+  "protect_resident": true
+}

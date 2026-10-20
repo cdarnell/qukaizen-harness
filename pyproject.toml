@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "qukaizen-harness"
+version = "0.1.0"
+description = "The QuKaiZen agent harness — a repository, not a product. Registry, model, context, guardrails, loop."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+authors = [{ name = "Charlie Darnell" }]
+keywords = ["agents", "harness", "local-first", "qukaizen"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+]
+# Zero runtime dependencies on purpose. Every product (DDaC, QueueLLM, ARAIL,
+# PaperAgents, 3DEval) is reached through a Protocol the consumer implements.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.10"]
+
+[project.urls]
+Homepage = "https://qukaizen.com/harness"
+Repository = "https://github.com/cdarnell/qukaizen-harness"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/qukaizen_harness"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "TID"]
+
+# The one rule the page promises: "five modules, zero product imports".
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"arail".msg = "qukaizen-harness never imports a product. Inject it through a Protocol."
+"qukaizen_dac".msg = "qukaizen-harness never imports a product. Inject it through a Protocol."
+"queuellm".msg = "qukaizen-harness never imports a product. Inject it through a Protocol."
+"paperagents".msg = "qukaizen-harness never imports a product. Inject it through a Protocol."
+"threedeval".msg = "qukaizen-harness never imports a product. Inject it through a Protocol."
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["qukaizen_harness"]
+mypy_path = "src"
