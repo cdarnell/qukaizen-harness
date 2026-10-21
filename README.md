@@ -106,6 +106,33 @@ A `model-policy.json`:
 }
 ```
 
+## Buddy on the floor
+
+A resident that operates a machine does not get a shell. It gets **declared
+commands**: a template with enum'd arguments, a class (`read` · `restart` ·
+`disruptive`), and the variants pre-approved to run unattended. The grammar
+only admits commands that exist. A `disruptive` step stops and **waits for a
+ruling**; you press `y` in your own pane, the ruling is spent once, and if you
+want it to stand, the charter's `approved` list is where a ruling becomes a rule.
+
+`TmuxOperator` types each command into a tmux pane you attach to read-only, so
+what you watch is what the resident sees — narration first, then the command,
+then the ledger line.
+
+```bash
+python -m qukaizen_harness.commands | sh    # builds the three-pane floor
+tmux attach -r -t buddy                     # watch (read-only)
+python examples/buddy_on_the_floor.py       # in another terminal
+```
+
+```
+[1] lab.doctor   → acted
+[2] lab.restart  → acted            (--debug is pre-approved)
+[3] lab.apply    → flagged          (waits for a ruling: echo 'applying teams.toml')
+you press y
+[4] lab.apply    → acted
+```
+
 ## The standing rules
 
 - The resident model is never evicted. Everything else yields to it.
@@ -119,14 +146,14 @@ A `model-policy.json`:
 
 ```bash
 pip install -e ".[dev]"
-pytest            # 33 tests, including the night in the lab
+pytest            # 44 tests, including the night in the lab and Buddy on the floor
 ruff check . && ruff format --check .
 mypy              # strict
 ```
 
 ## Status
 
-v0.1.0 — the five parts with their contracts and tests. Not yet here: the
+v0.2.0 — the five parts with their contracts and tests, plus declared commands and the tmux floor. Not yet here: the
 QueueLLM `Runtime` adapter, the DDaC `KnowledgeSource`/`Gate` adapters, and a
 daemon entry point. Those land in the consumer repos and a `qukaizen-harness
 run` command respectively.
