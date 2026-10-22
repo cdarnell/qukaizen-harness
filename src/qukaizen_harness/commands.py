@@ -203,7 +203,10 @@ class TmuxOperator:
             "send-keys",
             "-t",
             self._t(1),
-            f"export PROMPT_COMMAND='echo $? > {shlex.quote(str(self.exit_file))}'; clear",
+            # bash reads PROMPT_COMMAND; zsh (the macOS default) reads precmd.
+            # Defining both is harmless in either shell.
+            f"__qkz_x() {{ echo $? > {shlex.quote(str(self.exit_file))}; }}; "
+            "PROMPT_COMMAND=__qkz_x; precmd() { __qkz_x; }; clear",
             "Enter",
         )
         self._hooked = True
