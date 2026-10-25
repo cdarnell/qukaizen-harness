@@ -54,6 +54,10 @@ select = ["E", "F", "I", "UP", "B", "TID"]
 "queuellm".msg = "qukaizen-harness never imports a product. Inject it through a Protocol."
 "paperagents".msg = "qukaizen-harness never imports a product. Inject it through a Protocol."
 "threedeval".msg = "qukaizen-harness never imports a product. Inject it through a Protocol."
+"dac_world".msg = "qukaizen-harness never imports a product. Inject it through a Protocol."
+"aerollm_api".msg = "qukaizen-harness never imports a product. Inject it through a Protocol."
+"queuellm_api".msg = "qukaizen-harness never imports a product. Inject it through a Protocol."
+"pactl".msg = "qukaizen-harness never imports a product. Inject it through a Protocol."
 
 [tool.mypy]
 python_version = "3.11"

@@ -10,7 +10,7 @@ wakes it.
 from __future__ import annotations
 
 import time
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -144,7 +144,17 @@ class Harness:
 
     def tick(self, resident: Resident, wake: Wake | None = None) -> Tick:
         """Run one wake to completion and record it. Never raises past the ledger."""
-        self.models.ensure_resident()
+        try:
+            self.models.ensure_resident()
+        except Exception as exc:  # noqa: BLE001 - a refused resident is ledgered, not raised
+            self.ledger.record(
+                resident=resident.name,
+                trigger=wake.label if wake else "-",
+                tool=None,
+                outcome="error",
+                detail={"error": f"{type(exc).__name__}: {exc}"},
+            )
+            return Tick(resident.name, wake, "error", result=exc)
         if wake is None:
             wake = next((w for t in resident.triggers if (w := t.poll())), None)
             if wake is None:
@@ -256,17 +266,26 @@ class Harness:
                 context=ctx,
             )
 
-        # record
+        # record. A command's receipt (exit code, output hash) goes in the ledger,
+        # and a non-zero exit is "failed", not "acted".
+        outcome = "acted"
+        detail: dict[str, Any] = {
+            **base_detail,
+            "args": dict(proposed.args),
+            "tool_schema_sha256": spec.schema_hash(),
+        }
+        if isinstance(result, Mapping) and "exit" in result:
+            detail["result"] = {
+                k: result[k] for k in ("command", "exit", "out_sha256", "seconds") if k in result
+            }
+            if result["exit"] != 0:
+                outcome = "failed"
         self.ledger.record(
             resident=resident.name,
             trigger=wake.label,
             tool=spec.qualified,
-            outcome="acted",
-            detail={
-                **base_detail,
-                "args": dict(proposed.args),
-                "tool_schema_sha256": spec.schema_hash(),
-            },
+            outcome=outcome,
+            detail=detail,
         )
         self._session[resident.name].append(
             Segment(
@@ -276,7 +295,7 @@ class Harness:
             )
         )
         return Tick(
-            resident.name, wake, "acted", proposed, result, verdicts=[*before, *after], context=ctx
+            resident.name, wake, outcome, proposed, result, verdicts=[*before, *after], context=ctx
         )
 
     # -- always on -----------------------------------------------------------

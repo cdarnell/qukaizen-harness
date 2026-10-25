@@ -27,6 +27,7 @@ import re
 import shlex
 import subprocess
 import time
+import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -196,9 +197,14 @@ class TmuxOperator:
         return self.log_dir / "last.exit"
 
     def ensure_hook(self) -> None:
-        """Install the exit-code hook once. Shown in the pane one time, then quiet."""
+        """Install the exit-code hook once, and wait until it has fired once.
+
+        Waiting matters: the hook's first fire (after ``clear``) must not be mistaken
+        for the first command's exit code.
+        """
         if self._hooked:
             return
+        before = self.exit_file.stat().st_mtime_ns if self.exit_file.exists() else -1
         self._tmux(
             "send-keys",
             "-t",
@@ -209,8 +215,13 @@ class TmuxOperator:
             "PROMPT_COMMAND=__qkz_x; precmd() { __qkz_x; }; clear",
             "Enter",
         )
+        t0 = time.monotonic()
+        while time.monotonic() - t0 < 10.0:
+            if self.exit_file.exists() and self.exit_file.stat().st_mtime_ns > before:
+                break
+            time.sleep(0.1)
         self._hooked = True
-        time.sleep(0.3)
+        time.sleep(0.2)
 
     def run(self, command: str, *, timeout_s: float = 120.0) -> RunResult:
         self.ensure_hook()
@@ -270,17 +281,46 @@ class Rulings:
     def record(self, command: str, ruling: str) -> None:
         if ruling not in ("allow", "deny"):
             raise CommandError("ruling must be 'allow' or 'deny'")
+        self._append(
+            {"id": uuid.uuid4().hex, "command": command, "ruling": ruling, "ts": time.time()}
+        )
+
+    def _append(self, row: Mapping[str, Any]) -> None:
+        # One short O_APPEND write: concurrent writers interleave whole lines, never lose one.
         with self.path.open("a", encoding="utf-8") as f:
-            f.write(json.dumps({"command": command, "ruling": ruling, "ts": time.time()}) + "\n")
+            f.write(json.dumps(row) + "\n")
+
+    def _rows(self) -> list[dict[str, Any]]:
+        """Every well-formed object line; torn or hand-edited lines are skipped, not fatal."""
+        rows: list[dict[str, Any]] = []
+        for line in self.path.read_text(encoding="utf-8").splitlines():
+            try:
+                row = json.loads(line)
+            except ValueError:
+                continue
+            if isinstance(row, dict):
+                rows.append(row)
+        return rows
 
     def take(self, command: str) -> str | None:
-        """Consume the oldest unspent ruling for this exact command, if any."""
-        rows = [json.loads(x) for x in self.path.read_text().splitlines() if x.strip()]
+        """Spend the oldest unspent ruling for this exact command, if any.
+
+        Append-only: a spend is a marker line, never a rewrite, so a ruling written
+        while Buddy spends another is not lost. If two takers race for one ruling,
+        the first marker in the file wins and the other gets ``None``.
+        """
+        rows = self._rows()
+        spent = {r["spend"] for r in rows if "spend" in r}
         for i, r in enumerate(rows):
-            if r.get("command") == command and not r.get("spent"):
-                rows[i]["spent"] = True
-                self.path.write_text("".join(json.dumps(x) + "\n" for x in rows))
-                return str(r["ruling"])
+            if r.get("command") != command or r.get("spent") or "ruling" not in r:
+                continue
+            rid = str(r.get("id") or f"legacy-{i}")
+            if rid in spent:
+                continue
+            token = uuid.uuid4().hex
+            self._append({"spend": rid, "by": token, "ts": time.time()})
+            winner = next(x for x in self._rows() if x.get("spend") == rid)
+            return str(r["ruling"]) if winner.get("by") == token else None
         return None
 
 
