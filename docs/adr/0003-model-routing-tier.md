@@ -83,10 +83,11 @@ right, ADR-0002's size band, and the sentence on qukaizen.com/harness that
 repeats it, need their own decision, and this ADR does not make it. Until that
 decision exists this ADR stays Proposed, for that reason among others.
 
-## What was measured
+## Measurement
 
-The pair measured is this sprint's pins, and is not named here as the small or
-the large model of the product:
+The pair the measurement is committed to is this sprint's pins. Nothing has been
+measured on it yet, and it is not named here as the small or the large model of
+the product:
 
 - small: `llama3.2:1b` through Ollama (the weights behind ARAIL's shipped
   default tag, without its persona layer, so both arms see the same bytes);
