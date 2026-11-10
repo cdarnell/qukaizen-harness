@@ -106,7 +106,7 @@ population.
 
 The measurement surface (the pairing, the verdict table, the code-only gate,
 the held-out comparison and an independent recompute) is built in
-`qukaizen-3d-eval` on branch `qukaizen/3d-eval-routing-surface` at `17490b6`
+`qukaizen-3d-eval` on branch `qukaizen/3d-eval-routing-surface` at `4bdceb0`
 (not merged at the time of writing). Only a five-case timing probe of the large
 arm has run; it is not an input to either question above. When the measurement
 runs, this section is replaced by the 3DEval commit and the digests of
