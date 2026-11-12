@@ -113,8 +113,10 @@ answers the strict grader rejects for format, such as an expanded acronym or a
 plural). All 294 subjects were paired, none excluded, and the large arm was
 clean (588 rows checked). Under cut/v2, one correct large-model answer is graded
 non-committal because of a known deferred defect (TD-101 in the 3DEval
-register), so H is a lower bound by at least one subject; strictness pushes H
-down and R up, never the other way.
+register), so that defect alone costs H at least one subject. Strictness
+mattered on this pair in one direction only: under lenient grading H would be
+126 and R unchanged at 4. That is what was observed here, not a rule; a pair
+whose small model is the verbose one could move the other way.
 
 Context does not cover it. A retrieved context slice fixes 53 of the 105
 subjects on which escalation pays (50.5%), below the 80% line frozen before the
