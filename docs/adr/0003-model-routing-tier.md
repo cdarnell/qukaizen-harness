@@ -85,9 +85,10 @@ decision exists this ADR stays Proposed, for that reason among others.
 
 ## Measurement
 
-The headroom measurement has run once, on the pair below, and was scored once.
-Nothing else has been measured, and the pair is not named here as the small or
-the large model of the product.
+The headroom measurement has been scored once, on the pair below. Nothing else
+has been scored, and the pair is not named here as the small or the large model
+of the product. (An earlier, smaller population was run and never scored; see
+the end of this section.)
 
 - small: `llama3.2:1b` as served by Ollama 0.40.11 (the weights behind ARAIL's
   shipped default tag, without its persona layer, so both arms see the same
@@ -102,12 +103,18 @@ seed `20261021`. It is a proxy for the grounded lookup steps an agent performs.
 It is not a sample of agent requests, and no result of it is a claim about any
 other population.
 
-The receipt's own sentence: "Escalation pays on this population: H = 105/294
-(35.7%, 95% lower bound 30.2%), R = 4/294 (1.4%). The gate comparison may run;
-nothing is certified." H is the share of subjects the large model answers right
-and the small one wrong, R the reverse. Both models right on 22 subjects,
-neither on 163. All 294 subjects were paired, none excluded, and the large arm
-was clean (588 rows checked).
+The receipt's own sentence: "Escalation pays on this population (...): H =
+105/294 (35.7%, 95% lower bound 30.2%), R = 4/294 (1.4%). The gate comparison
+may run; nothing is certified." (The parenthesis, cut here, restates the
+population above.) Answers were graded strict-correct under cut/v2. H is the
+share of subjects the large model answers right and the small one wrong, R the
+reverse. Both models right on 22 subjects, neither on 163 ("neither" includes
+answers the strict grader rejects for format, such as an expanded acronym or a
+plural). All 294 subjects were paired, none excluded, and the large arm was
+clean (588 rows checked). Under cut/v2, one correct large-model answer is graded
+non-committal because of a known deferred defect (TD-101 in the 3DEval
+register), so H is a lower bound by at least one subject; strictness pushes H
+down and R up, never the other way.
 
 Context does not cover it. A retrieved context slice fixes 53 of the 105
 subjects on which escalation pays (50.5%), below the 80% line frozen before the
